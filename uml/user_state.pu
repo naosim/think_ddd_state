@@ -1,0 +1,15 @@
+@startuml
+title ユーザの状態遷移
+
+state "なし" as none
+state "申込中" as ordered
+state "契約中" as contracted
+state "申込キャンセル" as order_canceled
+state "契約終了" as contracte_ended
+
+none -> ordered: 申込
+ordered -> contracted: 処理完了
+ordered --> order_canceled: 申込キャンセル
+contracted --> contracte_ended: 契約終了
+
+@enduml

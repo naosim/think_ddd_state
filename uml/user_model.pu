@@ -1,0 +1,14 @@
+@startuml
+class User {
+  userId
+  state
+  orderDate
+  contractStartDate
+  contractEndDate
+
+  order()
+  cancelOrder()
+  endSetupProcess()
+  endContract()
+}
+@enduml
