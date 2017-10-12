@@ -139,3 +139,64 @@ SingleEntityパタンではIF文で分岐してましたが、ここではIF文�
 
 ## 状態ごとに堅牢なEntityを作る
 ステートパタンの悪いところは、共通インターフェースを全員が実装していること。それによってクラスごとの機能がぼやける。もちろん隠蔽を目的にするなら良いけど、クラスから仕様を把握する目的ではよくない。なので共通インターフェースを取っ払って各Entityでできること(メソッド)を忠実に実装してみます。
+
+
+- UserOrderedEntity implements UserEntity
+  - フィールド
+    - UserId
+    - State
+    - OrderDate
+  - メソッド
+    - onFinishedSetup(): UserContractedEntity
+    - onOrderCancel(): UserOrderCanceledEntity
+
+- UserOrderCanceledEntity implements UserEntity
+  - フィールド
+    - UserId
+    - State
+    - OrderDate
+    - OrderCancelDate
+
+- UserContractedEntity implements UserEntity
+  - フィールド
+    - UserId
+    - State
+    - OrderDate
+    - ContractStartDate
+  - メソッド
+    - onContractEnd(): UserContractEndedEntity
+
+- UserContractEndedEntity implements UserEntity
+  - フィールド
+    - UserId
+    - State
+    - OrderDate
+    - ContractStartDate
+    - ContractEndDate
+
+## 考察
+クラスを見ただけで何ができるのかがわかるようになりました。またメソッドの戻り値が状態ごとのエンティティになることで、状態遷移の仕様もクラスで表現できるようになりました。これはもう仕様書として成立するレベルですね。このパタンをStateEntityパタンと呼ぶことにします。
+ただこれにはリポジトリから取得する方法に問題があります。
+SingleEntityパタン(ステートパタンも同様)とStateEntityパタンのリポジトリを考えます。
+
+SingleEntityパタン
+```
+UserRepository {
+  Validate<Error, UserEntity> find(UserId)
+}
+```
+
+StateEntityパタン
+```
+UserRepository {
+  Validate<Error, UserOrderedEntity> findOrdered(UserId)
+  Validate<Error, UserContractedEntity> findContracted(UserId)
+  Validate<Error, UserOrderCanceledEntity> findCanceled(UserId)
+  Validate<Error, UserContractEndedEntity> findContractEnded(UserId)
+}
+```
+
+SingleEntityパタンではメソッドは1つだけです。UserIdで検索してヒットすれば正常値、ないなら異常値が返ります。ただ戻り値の型は状況によってパタンはいろいろあると思います。異常時にErrorの詳細な内容を知らなくていいならOption<UserEntity>でもいいし、
+異常時は例外投げるようにして戻り値をUserEntityにしてもいい。そこはAP層の設計による部分なので適宜決めてください。
+
+そして本題のStateEntityパタンのリポジトリについてですが、ステートごとにfindを実装する必要があります。
