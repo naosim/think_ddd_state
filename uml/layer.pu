@@ -1,0 +1,43 @@
+@startuml
+title オニオンアーキテクチャ
+
+skinparam Frame {
+  FontColor #aaa
+  BorderColor #aaa
+}
+
+skinparam package {
+  backgroundColor<<Domain>> #ffd
+}
+
+package infra {
+  class API {
+  }
+  package application {
+    class ApService {
+    }
+    package domain <<Domain>> {
+      package repository <<Frame>> {
+        interface Repository {
+        }
+
+        package service <<Frame>> {
+          class Service {
+          }
+          package vo <<Frame>> {
+            class Entity {
+            }
+          }
+        }
+      }
+    }
+
+  }
+  class DataSource implements Repository {
+  }
+  package database <<Database>> {
+  }
+  DataSource -> database
+}
+
+@enduml
